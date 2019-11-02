@@ -4,6 +4,8 @@
 // CST 415
 // Fall 2019
 // 
+// Extended by Andy Horn
+// October-November 2019
 
 using System;
 using System.Collections.Generic;
@@ -64,15 +66,17 @@ namespace SDServer
 
         public ulong OpenSession()
         {
-            // TODO: SessionTable.OpenSession()
-
             // allocate and return a new session to the caller
             // find a free sessionId
-            // allocate a new session instance
-            // save the session for later
-            
+            var sessionId = NextSessionId();
 
-            return 0;
+            // allocate a new session instance
+            var session = new Session(sessionId);
+
+            // save the session for later
+            sessions.Add(sessionId, session);
+
+            return sessionId;
         }
 
         public bool ResumeSession(ulong sessionID)
