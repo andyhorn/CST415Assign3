@@ -4,6 +4,8 @@
 // CST 415
 // Fall 2019
 // 
+// Extended by Andy Horn
+// October-November 2019
 
 using System;
 using System.Text;
@@ -32,38 +34,39 @@ namespace SDServer
 
         public SDConnectedClient(Socket clientSocket, SessionTable sessionTable)
         {
-            // TODO: SDConnectedClient.SDConnectedClient()
-
             // save the client's socket
-            
+            this.clientSocket = clientSocket;
+
             // at this time, there is no stream, reader, write or thread
-            
+            reader = null;
+            writer = null;
+            stream = null;
+            clientThread = null;
+
             // save the server's session table
-            
-            // at this time, ther eis no session open
-            
+            this.sessionTable = sessionTable;
+
+            // at this time, there is no session open
+            sessionId = 0;            
         }
 
         public void Start()
         {
-            // TODO: SDConnectedClient.Start()
-
             // called by the main thread to start the clientThread and process messages for the client
-
             // create and start the clientThread, pass in a reference to this class instance as a parameter
-
+            clientThread = new Thread(ThreadProc);
+            clientThread.Start(this);
         }
 
         private static void ThreadProc(Object param)
         {
-            // TODO: SDConnectedClient.ThreadProc()
-
             // the procedure for the clientThread
             // when this method returns, the clientThread will exit
 
             // the param is a SDConnectedClient instance
             // start processing messages with the Run() method
-
+            var connectedClient = param as SDConnectedClient;
+            connectedClient.Run();
         }
 
         private void Run()
@@ -94,28 +97,43 @@ namespace SDServer
                         switch (msg)
                         {
                             case "open":
-                                break;
+                            {
+                                HandleOpen();
+                            }
+                            break;
 
                             case "resume":
-                                break;
+                            {
+                                HandleResume();
+                            }
+                            break;
 
                             case "close":
-                                break;
+                            {
+                                HandleClose();
+                            }
+                            break;
 
                             case "get":
-                                break;
+                            {
+                                HandleGet();
+                            }
+                            break;
 
                             case "post":
-                                break;
+                            {
+                                HandlePost();
+                            }
+                            break;
 
                             default:
-                                {
+                            {
                                     // error handling for an invalid message
                                     
                                     // this client is too broken to waste our time on!
                                     
-                                }
-                                break;
+                            }
+                            break;
                         }
                     }
                 }
@@ -135,8 +153,6 @@ namespace SDServer
 
         private void HandleOpen()
         {
-            // TODO: SDConnectedClient.HandleOpen()
-
             // handle an "open" request from the client
 
             // if no session currently open, then...
@@ -145,9 +161,10 @@ namespace SDServer
                 try
                 {
                     // ask the SessionTable to open a new session and save the session ID
-                    
+                    sessionId = sessionTable.OpenSession();
+
                     // send accepted message, with the new session's ID, to the client
-                    
+                    SendAccepted(sessionId);
                 }
                 catch (SessionException se)
                 {
@@ -295,10 +312,11 @@ namespace SDServer
 
         private void SendAccepted(ulong sessionId)
         {
-            // TODO: SDConnectedClient.SendAccepted()
-
             // send accepted message to SD client, including session id of now open session
-            
+            writer.WriteLine("accepted");
+            writer.WriteLine(sessionId.ToString());
+            writer.Flush();
+            Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Sent 'accepted' to client for session id: {sessionId.ToString()}");
         }
 
         private void SendRejected(string reason)
