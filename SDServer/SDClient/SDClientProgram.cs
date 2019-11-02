@@ -30,7 +30,7 @@ namespace SDClient
 
             // defaults
             string PRSSERVER_IPADDRESS = "127.0.0.1";
-            ushort PSRSERVER_PORT = 30000;
+            ushort PRSSERVER_PORT = 30000;
             string SDSERVICE_NAME = "SD Server";
             string SDSERVER_IPADDRESS = "127.0.0.1";
             ushort SDSERVER_PORT = 40000;
@@ -39,11 +39,11 @@ namespace SDClient
             string DOCUMENT_CMD = null;
             string DOCUMENT_NAME = null;
 
-            // process the command line arguments
-            
+            // TODO process the command line arguments
+            SESSION_CMD = "-o";
 
             Console.WriteLine("PRS Address: " + PRSSERVER_IPADDRESS);
-            Console.WriteLine("PRS Port: " + PSRSERVER_PORT);
+            Console.WriteLine("PRS Port: " + PRSSERVER_PORT);
             Console.WriteLine("SD Server Address: " + SDSERVER_IPADDRESS);
             Console.WriteLine("Session Command: " + SESSION_CMD);
             Console.WriteLine("Session Id: " + SESSION_ID);
@@ -53,14 +53,18 @@ namespace SDClient
             try
             {
                 // contact the PRS and lookup port for "SD Server"
-                
+                var prs = new PRSClient(PRSSERVER_IPADDRESS, PRSSERVER_PORT, SDSERVICE_NAME);
+
                 // create an SDClient to use in talking to the server
+                var client = new SDClient(SDSERVER_IPADDRESS, SDSERVER_PORT);
+                client.Connect();
                 
                 // send session command to server
                 if (SESSION_CMD == "-o")
                 {
                     // open new session
-                    
+                    client.OpenSession();
+                    Console.WriteLine($"Opened session {client.SessionID}");
                 }
                 else if (SESSION_CMD == "-r")
                 {
