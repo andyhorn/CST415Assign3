@@ -41,6 +41,7 @@ namespace SDServer
             listeningSocket.Bind(new IPEndPoint(IPAddress.Any, listeningPort));
             // set the socket to listen
             listeningSocket.Listen(clientBacklog);
+            Console.WriteLine("SDServer listening for clients");
 
             bool done = false;
             while (!done)
@@ -48,7 +49,9 @@ namespace SDServer
                 try
                 {
                     // accept a client connection
+                    Console.WriteLine("SDServer waiting for a client");
                     var clientSocket = listeningSocket.Accept();
+                    Console.WriteLine("SDServer accepted client connection");
 
                     // instantiate connected client to process messages
                     var connectedClient = new SDConnectedClient(clientSocket, sessionTable);
