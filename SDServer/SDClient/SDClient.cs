@@ -26,56 +26,66 @@ namespace SDClient
 
         public SDClient(string sdServerAddress, ushort sdServerPort)
         {
-            // TODO: SDClient.SDClient()
-
             // save server address/port
-            
+            this.sdServerAddress = sdServerAddress;
+            this.sdServerPort = sdServerPort;
+
             // initialize to not connected to server
-            
+            clientSocket = null;
+            stream = null;
+            reader = null;
+            writer = null;
+            connected = false;
+
             // no session open at this time
-            
+            sessionID = 0;
         }
 
         public ulong SessionID { get { return sessionID; } set { sessionID = value; } }
 
         public void Connect()
         {
-            // TODO: SDClient.Connect()
-
             ValidateDisconnected();
 
             // create a client socket and connect to the FT Server's IP address and port
-            
+            clientSocket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            clientSocket.Connect(sdServerAddress, sdServerPort);
+
             // establish the network stream, reader and writer
-            
+            stream = new NetworkStream(clientSocket);
+            reader = new StreamReader(stream, UTF8Encoding.ASCII);
+            writer = new StreamWriter(stream, UTF8Encoding.ASCII);
+
             // now connected
-            
+            connected = true;
         }
 
         public void Disconnect()
         {
-            // TODO: SDClient.Disconnect()
-
             ValidateConnected();
 
             // close writer, reader and stream
-            
+            writer.Close();
+            reader.Close();
+            stream.Close();
+
             // disconnect and close socket
-            
+            clientSocket.Disconnect(false);
+            clientSocket.Close();
+
             // now disconnected
-            
+            connected = false;
         }
 
         public void OpenSession()
         {
-            // TODO: SDClient.OpenSession()
-
             ValidateConnected();
 
             // send open command to server
-            
+            SendOpen();
+
             // receive server's response, hopefully with a new session id
-            
+            sessionID = ReceiveSessionResponse();
         }
 
         public void ResumeSession(ulong trySessionID)
@@ -133,21 +143,21 @@ namespace SDClient
         private void ValidateConnected()
         {
             if (!connected)
-                throw new Exception("Connot perform action. Not connected to server!");
+                throw new Exception("Cannot perform action. Not connected to server!");
         }
 
         private void ValidateDisconnected()
         {
             if (connected)
-                throw new Exception("Connot perform action. Already connected to server!");
+                throw new Exception("Cannot perform action. Already connected to server!");
         }
 
         private void SendOpen()
         {
-            // TODO: SDClient.SendOpen()
-
             // send open message to SD server
-            
+            writer.WriteLine("open");
+            writer.Flush();
+            Console.WriteLine("Sent 'open' to server");
         }
 
         private void SendClose(ulong sessionId)
@@ -168,29 +178,31 @@ namespace SDClient
 
         private ulong ReceiveSessionResponse()
         {
-            // TODO: SDClient.ReceiveSessionResponse()
-
             // get SD server's response to our last session request (open or resume)
             string line = reader.ReadLine();
             if (line == "accepted")
             {
                 // yay, server accepted our session!
                 // get the sessionID
-                return 0;
+                return ulong.Parse(reader.ReadLine());
             }
             else if (line == "rejected")
             {
                 // boo, server rejected us!
-                throw new Exception("TODO");
+                var reason = reader.ReadLine();
+                Console.WriteLine($"Server rejected session request: {reason}");
+                throw new Exception(reason);
             }
             else if (line == "error")
             {
                 // boo, server sent us an error!
-                throw new Exception("TODO");
+                var error = reader.ReadLine();
+                Console.WriteLine($"Server sent an error: {error}");
+                throw new Exception(error);
             }
             else
             {
-                throw new Exception("Expected to receive a valid session response, instead got... " + line);
+                throw new Exception("Expected to receive a valid session response, instead got: " + line);
             }
         }
 
