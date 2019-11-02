@@ -88,32 +88,39 @@ namespace SDClient
             sessionID = ReceiveSessionResponse();
         }
 
-        public void ResumeSession(ulong trySessionID)
+        public void ResumeSession()
         {
-            // TODO: SDClient.ResumeSession()
-
             ValidateConnected();
 
             // send resume session to the server
-            
+            SendResume();
+
             // receive server's response, hopefully confirming our sessionId
-            
+            var resumedSessionId = ReceiveSessionResponse();
+
             // verify that we received the same session ID that we requested
-            
-            // save opened session
-            
+            if (resumedSessionId != sessionID)
+            {
+                throw new Exception($"Requested resuming session {sessionID}, server resumed session {resumedSessionId}");
+            }
         }
 
         public void CloseSession()
         {
-            // TODO: SDClient.CloseSession()
-
             ValidateConnected();
 
-            // send close session to the server
-            
+            // send close request to the server
+            SendClose();
+
+            // receive closed response from the server
+            var closedSessionId = ReceiveSessionResponse();
+            if (closedSessionId != sessionID)
+            {
+                throw new Exception($"Server closed wrong session. Requested {sessionID}, received {closedSessionId}");
+            }
+
             // no session open
-            
+            sessionID = 0;
         }
 
         public string GetDocument(string documentName)
@@ -160,31 +167,39 @@ namespace SDClient
             Console.WriteLine("Sent 'open' to server");
         }
 
-        private void SendClose(ulong sessionId)
+        private void SendClose()
         {
-            // TODO: SDClient.SendClose()
-
             // send close message to SD server
-            
+            writer.WriteLine("close");
+            writer.WriteLine(sessionID);
+            writer.Flush();
+            Console.WriteLine($"Sent 'close' to server for session id {sessionID}");
         }
 
-        private void SendResume(ulong sessionId)
+        private void SendResume()
         {
-            // TODO: SDClient.SendResume()
-
             // send resume message to SD server
-            
+            writer.WriteLine("resume");
+            writer.WriteLine(sessionID);
+            writer.Flush();
+            Console.WriteLine($"Sent 'resume' to server for session {sessionID}");
         }
 
         private ulong ReceiveSessionResponse()
         {
-            // get SD server's response to our last session request (open or resume)
+            // get SD server's response to our last session request (open or resume or close)
             string line = reader.ReadLine();
             if (line == "accepted")
             {
                 // yay, server accepted our session!
                 // get the sessionID
                 return ulong.Parse(reader.ReadLine());
+            }
+            else if (line == "closed")
+            {
+                var sessionId = reader.ReadLine();
+                Console.WriteLine($"Server closed session {sessionId}");
+                return ulong.Parse(sessionId);
             }
             else if (line == "rejected")
             {

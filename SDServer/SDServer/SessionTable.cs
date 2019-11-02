@@ -81,19 +81,20 @@ namespace SDServer
 
         public bool ResumeSession(ulong sessionID)
         {
-            // TODO: SessionTable.ResumeSession()
-
             // returns true only if sessionID is a valid and open sesssion, false otherwise
-            return false;
+            return sessions.ContainsKey(sessionID);
         }
 
         public void CloseSession(ulong sessionID)
         {
-            // TODO: SessionTable.CloseSession()
-
             // closes the session, will no longer be open and cannot be reused
             // throws a session exception if the session is not open
+            if (!sessions.ContainsKey(sessionID))
+            {
+                throw new SessionException($"No session exists with id {sessionID}, cannot close");
+            }
 
+            sessions.Remove(sessionID);
         }
 
         public string GetSessionValue(ulong sessionID, string key)

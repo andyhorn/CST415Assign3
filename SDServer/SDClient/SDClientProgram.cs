@@ -39,8 +39,39 @@ namespace SDClient
             string DOCUMENT_CMD = null;
             string DOCUMENT_NAME = null;
 
-            // TODO process the command line arguments
-            SESSION_CMD = "-o";
+            // process the command line arguments
+            for (var i = 0; i < args.Length; i++)
+            {
+                var arg = args[i];
+                switch(arg)
+                {
+                    case "-r":
+                    case "-c":
+                    {
+                        SESSION_CMD = arg;
+                        SESSION_ID = ulong.Parse(args[++i]);
+                    }
+                    break;
+                    case "-o":
+                    {
+                        SESSION_CMD = arg;
+                    }
+                    break;
+                    case "-get":
+                    case "-post":
+                    {
+                        DOCUMENT_CMD = arg;
+                        DOCUMENT_NAME = args[++i];
+                    }
+                    break;
+                    default:
+                    {
+                        Console.WriteLine($"Invalid argument: {arg}");
+                        Usage();
+                        return;
+                    }
+                }
+            }
 
             Console.WriteLine("PRS Address: " + PRSSERVER_IPADDRESS);
             Console.WriteLine("PRS Port: " + PRSSERVER_PORT);
@@ -69,12 +100,18 @@ namespace SDClient
                 else if (SESSION_CMD == "-r")
                 {
                     // resume existing session
-                    
+                    Console.WriteLine($"Resuming session id {SESSION_ID}");
+                    client.SessionID = SESSION_ID;
+                    client.ResumeSession();
+                    Console.WriteLine($"Accepted session id {SESSION_ID}");
                 }
                 else if (SESSION_CMD == "-c")
                 {
+                    Console.WriteLine($"Closing session id {SESSION_ID}");
                     // close existing session
-                    
+                    client.SessionID = SESSION_ID;
+                    client.CloseSession();
+                    Console.WriteLine($"Closed session id {SESSION_ID}");
                 }
                 
                 // send document request to server

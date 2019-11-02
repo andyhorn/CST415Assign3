@@ -71,8 +71,6 @@ namespace SDServer
 
         private void Run()
         {
-            // TODO: SDConnectedClient.Run()
-
             // this method is executed on the clientThread
 
             try
@@ -195,11 +193,11 @@ namespace SDServer
 
         private void HandleResume()
         {
-            // TODO: SDConnectedClient.HandleResume()
-
             // handle a "resume" request from the client
 
             // get the sessionId that the client just asked us to resume
+            var resumeSessionId = ulong.Parse(reader.ReadLine());
+            Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Client asked to resume session {resumeSessionId}");
             
             try
             {
@@ -208,8 +206,16 @@ namespace SDServer
                 {
                     // try to resume the session in the session table
                     // if success, remember the session that we're now using and send accepted to client
-                    
+                    if (sessionTable.ResumeSession(resumeSessionId))
+                    {
+                        sessionId = resumeSessionId;
+                        SendAccepted(sessionId);
+                    }
                     // if failed to resume session, send rejectetd to client
+                    else
+                    {
+                        SendRejected("Invalid session id");
+                    }
 
                 }
                 else
@@ -230,18 +236,26 @@ namespace SDServer
 
         private void HandleClose()
         {
-            // TODO: SDConnectedClient.HandleClose()
-
             // handle a "close" request from the client
 
             // get the sessionId that the client just asked us to close
+            var closedSessionId = ulong.Parse(reader.ReadLine());
+            Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Client asked to close session id {closedSessionId}");
             
             try
             {
                 // close the session in the session table
-                // send closed message back to client
-                // record that this client no longer has an open session
+                sessionTable.CloseSession(closedSessionId);
 
+                // send closed message back to client
+                SendClosed(closedSessionId);
+
+                // record that this client no longer has an open session
+                if (sessionId == closedSessionId)
+                {
+                    Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Client no longer has an open session");
+                    sessionId = 0;
+                }
             }
             catch (SessionException se)
             {
@@ -332,18 +346,20 @@ namespace SDServer
 
         private void SendRejected(string reason)
         {
-            // TODO: SDConnectedClient.SendRejected()
-
             // send rejected message to SD client, including reason for rejection
-            
+            writer.WriteLine("rejected");
+            writer.WriteLine(reason);
+            writer.Flush();
+            Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Sent 'rejected' to client, reason: {reason}");
         }
 
         private void SendClosed(ulong sessionId)
         {
-            // TODO: SDConnectedClient.SendClosed()
-
             // send closed message to SD client, including session id that was just closed
-            
+            writer.WriteLine("closed");
+            writer.WriteLine(sessionId);
+            writer.Flush();
+            Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Sent 'closed' to client for session id: {sessionId.ToString()}");
         }
 
         private void SendSuccess()
