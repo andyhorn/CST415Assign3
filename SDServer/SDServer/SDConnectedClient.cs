@@ -78,6 +78,9 @@ namespace SDServer
             try
             {
                 // create network stream, reader and writer over the socket
+                stream = new NetworkStream(clientSocket);
+                reader = new StreamReader(stream, UTF8Encoding.ASCII);
+                writer = new StreamWriter(stream, UTF8Encoding.ASCII);
                 
                 // process client requests
                 bool done = false;
