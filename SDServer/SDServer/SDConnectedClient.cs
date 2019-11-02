@@ -84,15 +84,18 @@ namespace SDServer
                 while (!done)
                 {
                     // receive a message from the client
+                    Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Waiting for message from client...");
                     string msg = reader.ReadLine();
                     if (msg == null)
                     {
                         // no message means the client disconnected
                         // remember that the client will connect and disconnect as desired
-                        
+                        Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Client disconnected, exiting...");
+                        done = true;
                     }
                     else
                     {
+                        Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Message received: {msg}");
                         // handle the message
                         switch (msg)
                         {
@@ -128,10 +131,11 @@ namespace SDServer
 
                             default:
                             {
-                                    // error handling for an invalid message
-                                    
-                                    // this client is too broken to waste our time on!
-                                    
+                                // error handling for an invalid message
+                                Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Invalid message received: {msg}");
+                                // this client is too broken to waste our time on!
+                                SendError("Invalid message");
+                                done = true;
                             }
                             break;
                         }
@@ -148,7 +152,10 @@ namespace SDServer
             }
 
             // close the client's writer, reader, network stream and socket
-            
+            writer.Close();
+            reader.Close();
+            stream.Close();
+            clientSocket.Close();
         }
 
         private void HandleOpen()
@@ -162,6 +169,7 @@ namespace SDServer
                 {
                     // ask the SessionTable to open a new session and save the session ID
                     sessionId = sessionTable.OpenSession();
+                    Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Opening new session: {sessionId}");
 
                     // send accepted message, with the new session's ID, to the client
                     SendAccepted(sessionId);
@@ -355,10 +363,11 @@ namespace SDServer
 
         private void SendError(string errorString)
         {
-            // TODO: SDConnectedClient.SendError()
-
             // send error message to SD client, including error string
-            
+            writer.WriteLine("error");
+            writer.WriteLine(errorString);
+            writer.Flush();
+            Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Sent 'error' to client");
         }
 
         private string ReceiveDocument(int length)
