@@ -125,14 +125,14 @@ namespace SDClient
 
         public string GetDocument(string documentName)
         {
-            // TODO: SDClient.GetDocument()
-
             ValidateConnected();
 
             // send get to the server
-            
+            SendGet(documentName);
+
             // get the server's response
-            return "TODO";
+            var response = ReceiveGetResponse();
+            return response;
         }
 
         public void PostDocument(string documentName, string documentContents)
@@ -231,10 +231,11 @@ namespace SDClient
 
         private void SendGet(string documentName)
         {
-            // TODO: SDClient.SendGet()
-
             // send get message to SD server
-
+            writer.WriteLine("get");
+            writer.WriteLine(documentName);
+            writer.Flush();
+            Console.WriteLine($"Sent 'get' to server for document {documentName}");
         }
 
         private void ReceivePostResponse()
@@ -261,38 +262,45 @@ namespace SDClient
 
         private string ReceiveGetResponse()
         {
-            // TODO: SDClient.ReceiveGetResponse()
-
             // get server's response to our last get request and return the content received
             string line = reader.ReadLine();
             if (line == "success")
             {
                 // yay, server accepted our request!
-                
+
                 // read the document name, content length and content
+                var name = reader.ReadLine();
+                var length = int.Parse(reader.ReadLine());
+                var content = ReceiveDocumentContent(length);
                 
                 // return the content
-                return "TODO";
+                return content;
             }
             else if (line == "error")
             {
                 // boo, server sent us an error!
-                throw new Exception("TODO");
+                throw new Exception($"Error: {reader.ReadLine()}");
             }
             else
             {
-                throw new Exception("Expected to receive a valid get response, instead got... " + line);
+                throw new Exception("Expected to receive a valid 'get' response, instead got... " + line);
             }
         }
 
         private string ReceiveDocumentContent(int length)
         {
-            // TODO: SDClient.ReceiveDocumentContent()
-
             // read from the reader until we've received the expected number of characters
             // accumulate the characters into a string and return those when we received enough
+            var bytesRead = 0;
+            string buffer = "";
 
-            return "TODO";
+            while (bytesRead < length)
+            {
+                buffer += reader.Read();
+                bytesRead++;
+            }
+
+            return buffer;
         }
     }
 }

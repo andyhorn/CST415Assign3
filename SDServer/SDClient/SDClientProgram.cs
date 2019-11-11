@@ -124,10 +124,13 @@ namespace SDClient
                 }
                 else if (DOCUMENT_CMD == "-get")
                 {
+                    Console.WriteLine($"Getting {DOCUMENT_NAME}");
                     // get document from the server
-                    
+                    var contents = client.GetDocument(DOCUMENT_NAME);
+
                     // print out the received document
-                    
+                    Console.WriteLine($"Success, received {contents.Length} bytes of {DOCUMENT_NAME}");
+                    Console.WriteLine(contents);
                 }
                 
                 // disconnect from the server
