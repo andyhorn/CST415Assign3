@@ -137,14 +137,13 @@ namespace SDClient
 
         public void PostDocument(string documentName, string documentContents)
         {
-            // TODO: SDClient.PostDocument()
-
             ValidateConnected();
 
             // send the document to the server
-            
+            SendPost(documentName, documentContents);
+
             // get the server's response
-            
+            ReceivePostResponse();
         }
 
         private void ValidateConnected()
@@ -223,10 +222,14 @@ namespace SDClient
 
         private void SendPost(string documentName, string documentContents)
         {
-            // TODO: SDClient.SendPost()
+            // send post message to SD server, including document name, length and contents
+            writer.WriteLine("post");
+            writer.WriteLine(documentName);
+            writer.WriteLine(documentContents.Length);
+            writer.Write(documentContents);
+            writer.Flush();
 
-            // send post message to SD erer, including document name, length and contents
-
+            Console.WriteLine($"Sent 'post' to server for '{documentName}' of {documentContents.Length} bytes");
         }
 
         private void SendGet(string documentName)
@@ -240,19 +243,18 @@ namespace SDClient
 
         private void ReceivePostResponse()
         {
-            // TODO: SDClient.ReceivePostResponse()
-
             // get server's response to our last post request
             string line = reader.ReadLine();
             if (line == "success")
             {
                 // yay, server accepted our request!
-                
+                Console.WriteLine("Received 'success' from server");
+                return;
             }
             else if (line == "error")
             {
                 // boo, server sent us an error!
-                throw new Exception("TODO");
+                throw new Exception($"Error, failed to post document: {reader.ReadLine()}");
             }
             else
             {
@@ -279,7 +281,7 @@ namespace SDClient
             else if (line == "error")
             {
                 // boo, server sent us an error!
-                throw new Exception($"Error: {reader.ReadLine()}");
+                throw new Exception($"{reader.ReadLine()}");
             }
             else
             {

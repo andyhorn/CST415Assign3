@@ -269,8 +269,6 @@ namespace SDServer
 
         private void HandleGet()
         {
-            // TODO: SDConnectedClient.HandleGet()
-
             // handle a "get" request from the client
 
             // if the client has a session open
@@ -279,11 +277,13 @@ namespace SDServer
                 try
                 {
                     // get the document name from the client
-                    
+                    var documentName = reader.ReadLine();
+
                     // get the document content from the session table
-                    
+                    var documentContent = sessionTable.GetSessionValue(sessionId, documentName);
+
                     // send success and document to the client
-                    
+                    SendSuccess(documentName, documentContent);
                 }
                 catch (SessionException se)
                 {
@@ -296,8 +296,8 @@ namespace SDServer
             }
             else
             {
-                // error, cannot post without a session
-                
+                // error, cannot get without a session
+                SendError($"Error, open session not found!");
             }
         }
 
@@ -373,11 +373,15 @@ namespace SDServer
 
         private void SendSuccess(string documentName, string documentContent)
         {
-            // TODO: SDConnectedClient.SendSuccess(documentName, documentContent)
-
             // send success message to SD client, including retrieved document name, length and content
             // NOTE: in response to a get request
-            
+            writer.WriteLine("success");
+            writer.WriteLine(documentName);
+            writer.WriteLine(documentContent.Length);
+            writer.Write(documentContent);
+            writer.Flush();
+
+            Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Sent 'success' with {documentContent.Length} bytes of '{documentName}' for session: {sessionId.ToString()}");
         }
 
         private void SendError(string errorString)
@@ -386,7 +390,7 @@ namespace SDServer
             writer.WriteLine("error");
             writer.WriteLine(errorString);
             writer.Flush();
-            Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Sent 'error' to client");
+            Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Sent error to client: {errorString}");
         }
 
         private string ReceiveDocument(int length)

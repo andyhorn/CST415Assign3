@@ -118,9 +118,13 @@ namespace SDClient
                 if (DOCUMENT_CMD == "-post")
                 {
                     // read the document contents from stdin
-                    
+                    var contents = Console.In.ReadToEnd();
+
                     // send the document to the server
-                    
+                    Console.WriteLine($"Posting {contents.Length} bytes of {DOCUMENT_NAME}");
+                    client.PostDocument(DOCUMENT_NAME, contents);
+
+                    Console.WriteLine("Success");
                 }
                 else if (DOCUMENT_CMD == "-get")
                 {
@@ -138,7 +142,7 @@ namespace SDClient
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error " + ex.Message);
+                Console.WriteLine("Error: " + ex.Message);
                 Console.WriteLine(ex.StackTrace);
             }
 

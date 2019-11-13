@@ -99,20 +99,32 @@ namespace SDServer
 
         public string GetSessionValue(ulong sessionID, string key)
         {
-            // TODO: SessionTable.GetSessionValue()
-
-            // retrieves a session value, given session ID and key
+            // retrieves a session value, given a session ID and key
             // throws a session exception if the session is not open or if the value does not exist by that key
-            return "TODO";
+
+            if (!sessions.ContainsKey(sessionID))
+            {
+                throw new SessionException($"Session {sessionID} is not open");
+            }
+
+            if (!sessions[sessionID].values.ContainsKey(key))
+            {
+                throw new SessionException($"No document found for key '{key}'");
+            }
+
+            return sessions[sessionID].values[key];
         }
 
         public void PutSessionValue(ulong sessionID, string key, string value)
         {
-            // TODO: SessionTable.PutSessionValue()
-
             // stores a session value by session ID and key, replaces value if it already exists
             // throws a session exception if the session is not open
-            
+            if (!sessions.ContainsKey(sessionID))
+            {
+                throw new SessionException($"Session {sessionID} is not open");
+            }
+
+            sessions[sessionID].values[key] = value;
         }
     }
 }
