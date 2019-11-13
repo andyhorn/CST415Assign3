@@ -136,9 +136,9 @@ namespace SDClient
                     Console.WriteLine($"Success, received {contents.Length} bytes of {DOCUMENT_NAME}");
                     Console.WriteLine(contents);
                 }
-                
+
                 // disconnect from the server
-                
+                client.Disconnect();
             }
             catch (Exception ex)
             {

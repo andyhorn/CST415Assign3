@@ -303,8 +303,6 @@ namespace SDServer
 
         private void HandlePost()
         {
-            // TODO: SDConnectedClient.HandlePost()
-
             // handle a "post" request from the client
 
             // if the client has a session open
@@ -313,11 +311,15 @@ namespace SDServer
                 try
                 {
                     // get the document name, content length and contents from the client
-                    
+                    var documentName = reader.ReadLine();
+                    var documentLength = int.Parse(reader.ReadLine());
+                    var documentContents = ReceiveDocument(documentLength);
+
                     // put the document into the session
-                    
+                    sessionTable.PutSessionValue(sessionId, documentName, documentContents);
+
                     // send success to the client
-                    
+                    SendSuccess();
                 }
                 catch (SessionException se)
                 {
@@ -331,7 +333,7 @@ namespace SDServer
             else
             {
                 // error, cannot post without a session
-                
+                SendError($"No session found with ID {sessionId}, cannot post document");
             }
         }
 
@@ -341,7 +343,7 @@ namespace SDServer
             writer.WriteLine("accepted");
             writer.WriteLine(sessionId.ToString());
             writer.Flush();
-            Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Sent 'accepted' to client for session id: {sessionId.ToString()}");
+            Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Sent 'accepted' to client for session ID: {sessionId.ToString()}");
         }
 
         private void SendRejected(string reason)
@@ -364,11 +366,12 @@ namespace SDServer
 
         private void SendSuccess()
         {
-            // TODO: SDConnectedClient.SendSuccess()
-
             // send sucess message to SD client, with no further info
             // NOTE: in response to a post request
-            
+            writer.WriteLine("success");
+            writer.Flush();
+
+            Console.WriteLine($"[{clientThread.ManagedThreadId}] Sent 'success' for session {sessionId}");
         }
 
         private void SendSuccess(string documentName, string documentContent)
@@ -381,7 +384,7 @@ namespace SDServer
             writer.Write(documentContent);
             writer.Flush();
 
-            Console.WriteLine($"[{clientThread.ManagedThreadId.ToString()}] Sent 'success' with {documentContent.Length} bytes of '{documentName}' for session: {sessionId.ToString()}");
+            Console.WriteLine($"[{clientThread.ManagedThreadId}] Sent 'success' with {documentContent.Length} bytes of '{documentName}' for session: {sessionId}");
         }
 
         private void SendError(string errorString)
@@ -395,15 +398,28 @@ namespace SDServer
 
         private string ReceiveDocument(int length)
         {
-            // TODO: SDConnectedClient.ReceiveDocument()
-
             // receive a document from the SD client, of expected length
             // NOTE: as part of processing a post request
 
             // read from the reader until we've received the expected number of characters
             // accumulate the characters into a string and return those when we got enough
-            
-            return "TODO";
+
+            int bytesLeftToRead = length;
+            string contents = "";
+
+            while (bytesLeftToRead > 0)
+            {
+                char[] buffer = new char[bytesLeftToRead];
+                int bytesRead = reader.Read(buffer, 0, bytesLeftToRead);
+                string s = new string(buffer);
+
+                contents += s;
+                bytesLeftToRead -= bytesRead;
+            }
+
+            Console.WriteLine($"Received {contents.Length} bytes of data");
+
+            return contents;
         }
     }
 }

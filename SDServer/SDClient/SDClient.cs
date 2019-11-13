@@ -293,16 +293,22 @@ namespace SDClient
         {
             // read from the reader until we've received the expected number of characters
             // accumulate the characters into a string and return those when we received enough
-            var bytesRead = 0;
-            string buffer = "";
+            int bytesLeftToRead = length;
+            string contents = "";
 
-            while (bytesRead < length)
+            while (bytesLeftToRead > 0)
             {
-                buffer += reader.Read();
-                bytesRead++;
+                char[] buffer = new char[bytesLeftToRead];
+                int bytesRead = reader.Read(buffer, 0, bytesLeftToRead);
+                string s = new string(buffer);
+
+                contents += s;
+                bytesLeftToRead -= bytesRead;
             }
 
-            return buffer;
+            Console.WriteLine($"Received {contents.Length} bytes of data");
+
+            return contents;
         }
     }
 }
