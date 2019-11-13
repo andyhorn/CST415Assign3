@@ -26,8 +26,29 @@ namespace SDServer
             ushort PRS_PORT = 30000;
             string SERVICE_NAME = "SD Server";
 
-            // TODO process the command line arguments to get the PRS ip address and PRS port number
-            
+            for (int i = 0; i < args.Length; i++)
+            {
+                var arg = args[i];
+                switch (arg)
+                {
+                    case "-prs":
+                    {
+                        var parameters = args[++i].Split(':');
+                        var ipAddress = parameters[0];
+                        var port = parameters[1];
+
+                        PRS_ADDRESS = ipAddress;
+                        PRS_PORT = ushort.Parse(port);
+                    }
+                    break;
+                    default:
+                    {
+                        Console.WriteLine($"Invalid argument: {arg}");
+                        Usage();
+                    }
+                    break;
+                }
+            }
 
             Console.WriteLine("PRS Address: " + PRS_ADDRESS);
             Console.WriteLine("PRS Port: " + PRS_PORT);

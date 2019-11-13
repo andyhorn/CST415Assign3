@@ -26,8 +26,6 @@ namespace SDClient
 
         static void Main(string[] args)
         {
-            // TODO: SDClientProgram.Main()
-
             // defaults
             string PRSSERVER_IPADDRESS = "127.0.0.1";
             ushort PRSSERVER_PORT = 30000;
